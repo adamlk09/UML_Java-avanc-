@@ -26,6 +26,14 @@ This project simulates a **banking system** that allows users to create and mana
 - **Affichage du solde**: Displays the current balance of the account.
 - **Transfert d'argent**: Allows transferring money between accounts, with checks for insufficient funds and non-existent accounts.
 
+### Example of Application Execution
+
+#### Adding a Bank Account
+
+Here’s how adding a bank account looks when you run the application:
+
+![execution ](assets/screenshotexecution%20.jpg)
+
 ## Project Setup
 
 1. **Clone the repository:**
