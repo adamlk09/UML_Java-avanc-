@@ -32,9 +32,10 @@ public class Employe {
 
     /**
      * Constructeur permettant d'initialiser un employé avec des valeurs spécifiques
-     * @param id l'identifiant de l'employé
-     * @param nom le nom de l'employé
-     * @param poste le poste occupé par l'employé
+     * 
+     * @param id      l'identifiant de l'employé
+     * @param nom     le nom de l'employé
+     * @param poste   le poste occupé par l'employé
      * @param salaire le salaire de l'employé
      * @throws EmployeException en cas de valeurs invalides
      */
@@ -54,6 +55,7 @@ public class Employe {
 
     /**
      * Setter pour l'ID de l'employé avec validation
+     * 
      * @param id L'ID à attribuer
      * @throws EmployeException si l'ID est négatif ou nul
      */
@@ -73,6 +75,7 @@ public class Employe {
 
     /**
      * Setter pour le nom de l'employé avec validation
+     * 
      * @param nom Le nom à attribuer
      * @throws EmployeException si le nom est vide ou invalide
      */
@@ -81,7 +84,8 @@ public class Employe {
             throw new EmployeException("Le nom ne peut pas être vide");
         }
         if (!nom.matches("^[a-zA-ZÀ-ÖØ-öø-ÿ\\s-]{2,50}$")) {
-            throw new EmployeException("Le nom doit contenir uniquement des lettres, espaces et tirets (2-50 caractères)");
+            throw new EmployeException(
+                    "Le nom doit contenir uniquement des lettres, espaces et tirets (2-50 caractères)");
         }
         this.nom = nom.trim();
     }
@@ -95,6 +99,7 @@ public class Employe {
 
     /**
      * Setter pour le poste de l'employé avec validation
+     * 
      * @param poste Le poste à attribuer
      * @throws EmployeException si le poste est vide ou invalide
      */
@@ -103,7 +108,8 @@ public class Employe {
             throw new EmployeException("Le poste ne peut pas être vide");
         }
         if (!poste.matches("^[a-zA-ZÀ-ÖØ-öø-ÿ\\s-]{2,50}$")) {
-            throw new EmployeException("Le poste doit contenir uniquement des lettres, espaces et tirets (2-50 caractères)");
+            throw new EmployeException(
+                    "Le poste doit contenir uniquement des lettres, espaces et tirets (2-50 caractères)");
         }
         this.poste = poste.trim();
     }
@@ -117,6 +123,7 @@ public class Employe {
 
     /**
      * Setter pour le salaire de l'employé avec validation
+     * 
      * @param salaire Le salaire à attribuer
      * @throws EmployeException si le salaire est hors des limites autorisées
      */
@@ -128,7 +135,9 @@ public class Employe {
     }
 
     /**
-     * Méthode pour représenter les informations d'un employé sous forme de chaîne de caractères
+     * Méthode pour représenter les informations d'un employé sous forme de chaîne
+     * de caractères
+     * 
      * @return Une chaîne contenant les informations de l'employé
      */
     @Override
