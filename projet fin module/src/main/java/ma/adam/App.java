@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class App{
         public static void main(String[] args) {
             Scanner scanner = new Scanner(System.in);
-            IEmployeManagement gestion = new GestionEmployes(50);
+            IEmployeManagement gestion = new GestionEmployes();
             Menu menu = new Menu(scanner, gestion);
             menu.executer();
             scanner.close();

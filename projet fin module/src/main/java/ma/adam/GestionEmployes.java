@@ -8,16 +8,20 @@ public class GestionEmployes implements IEmployeManagement {
     private int nombreEmployes;
     private final int MAX_EMPLOYES;
 
-    public GestionEmployes(int capacite) {
-        MAX_EMPLOYES = capacite;
+    public GestionEmployes() {
+        MAX_EMPLOYES = 50;
         employes = new Employe[MAX_EMPLOYES];
         nombreEmployes = 0;
+    }
+
+    public int getNombreEmployes() {
+        return nombreEmployes;
     }
 
     @Override
     public void ajouterEmploye(Employe employe) throws EmployeException {
         if (nombreEmployes >= MAX_EMPLOYES) {
-            throw new EmployeException("Le tableau est plein !");
+            throw new EmployeException("Le tableau est plein ! (Maximum " + MAX_EMPLOYES + " employés)");
         }
         if (rechercherEmployeParId(employe.getId()) != -1) {
             throw new EmployeException("Cet ID existe déjà !");
@@ -101,7 +105,7 @@ public class GestionEmployes implements IEmployeManagement {
         }
     }
 
-    private int rechercherEmployeParId(int id) {
+    public int rechercherEmployeParId(int id) {
         for (int i = 0; i < nombreEmployes; i++) {
             if (employes[i].getId() == id) {
                 return i;
@@ -109,4 +113,13 @@ public class GestionEmployes implements IEmployeManagement {
         }
         return -1;
     }
+    public boolean rechercherEmployeParNom(String nom) {
+        for (int i = 0; i < nombreEmployes; i++) {
+            if (employes[i].getNom().equalsIgnoreCase(nom)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

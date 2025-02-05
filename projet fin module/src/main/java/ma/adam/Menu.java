@@ -2,12 +2,11 @@ package ma.adam;
 
 import java.util.Scanner;
 
-/**
- * Classe gérant l'interface utilisateur
- */
 public class Menu {
     private Scanner scanner;
     private IEmployeManagement gestion;
+    private static final int MAX_TENTATIVES = 3;
+    private static final int TAILLE_MAX = 50;
 
     public Menu(Scanner scanner, IEmployeManagement gestion) {
         this.scanner = scanner;
@@ -15,14 +14,23 @@ public class Menu {
     }
 
     public void executer() {
+        int tentatives = 0;
         boolean continuer = true;
-        while (continuer) {
+
+        while (continuer && tentatives < MAX_TENTATIVES) {
             afficherMenu();
             try {
-                int choix = lireEntier("Votre choix", 0, 7);
+                int choix = lireEntier("Votre choix", 0, 7, MAX_TENTATIVES);
                 continuer = traiterChoix(choix);
-            } catch (Exception e) {
+                tentatives = 0; // Reset on successful operation
+            } catch (EmployeException e) {
                 System.out.println("Erreur : " + e.getMessage());
+                tentatives++;
+                if (tentatives < MAX_TENTATIVES) {
+                    System.out.println("Il vous reste " + (MAX_TENTATIVES - tentatives) + " tentative(s)");
+                } else {
+                    System.out.println("Nombre maximum de tentatives atteint. Programme terminé.");
+                }
             }
         }
     }
@@ -53,90 +61,94 @@ public class Menu {
         return true;
     }
 
-    private String lireChaine(String message) {
-        System.out.print(message + " : ");
-        return scanner.nextLine().trim();
-    }
-
-    private int lireEntier(String message, int min, int max) {
-        while (true) {
+    private int lireEntier(String message, int min, int max, int tentativesRestantes) throws EmployeException {
+        while (tentativesRestantes > 0) {
             try {
                 System.out.print(message + " : ");
-                int valeur = Integer.parseInt(scanner.nextLine());
+                int valeur = Integer.parseInt(scanner.nextLine().trim());
                 if (valeur >= min && valeur <= max) return valeur;
-                System.out.println("Veuillez entrer un nombre entre " + min + " et " + max);
+                throw new EmployeException("La valeur doit être entre " + min + " et " + max);
             } catch (NumberFormatException e) {
-                System.out.println("Veuillez entrer un nombre valide");
+                System.out.println("Erreur : Veuillez entrer un nombre valide");
+                tentativesRestantes--;
             }
         }
+        throw new EmployeException("Nombre maximum de tentatives atteint");
     }
 
-    private double lireDouble(String message, double min, double max) {
-        while (true) {
+    private double lireDouble(String message, double min, double max, int tentativesRestantes) throws EmployeException {
+        while (tentativesRestantes > 0) {
             try {
                 System.out.print(message + " : ");
-                double valeur = Double.parseDouble(scanner.nextLine());
+                double valeur = Double.parseDouble(scanner.nextLine().trim());
                 if (valeur >= min && valeur <= max) return valeur;
-                System.out.println("Veuillez entrer un nombre entre " + min + " et " + max);
+                throw new EmployeException("La valeur doit être entre " + min + " et " + max);
             } catch (NumberFormatException e) {
-                System.out.println("Veuillez entrer un nombre valide");
+                System.out.println("Erreur : Veuillez entrer un nombre valide");
+                tentativesRestantes--;
             }
         }
+        throw new EmployeException("Nombre maximum de tentatives atteint");
     }
 
-    // === MÉTHODES DE VALIDATION ===
-    private void validerNomOuPoste(String valeur, String champ) throws EmployeException {
-        if (!valeur.matches("[A-Za-zÀ-ÖØ-öø-ÿ\\s]+")) {
-            throw new EmployeException("Erreur : " + champ + " ne peut contenir que des lettres et des espaces.");
+    private String lireChaine(String message, int tentativesRestantes) throws EmployeException {
+        while (tentativesRestantes > 0) {
+            System.out.print(message + " : ");
+            String valeur = scanner.nextLine().trim();
+            if (valeur.isEmpty()) {
+                System.out.println("La valeur ne peut pas être vide");
+                tentativesRestantes--;
+                continue;
+            }
+            if (!valeur.matches("^[a-zA-ZÀ-ÖØ-öø-ÿ\\s\\-/]{2,50}$")) {
+                System.out.println("La valeur doit contenir uniquement des lettres, espaces et tirets (2-50 caractères)");
+                tentativesRestantes--;
+                continue;
+            }
+            return valeur;
         }
+        throw new EmployeException("Nombre maximum de tentatives atteint");
     }
 
-    private void validerSalaire(double salaire) throws EmployeException {
-        if (salaire < 0 || salaire > 1000000) {
-            throw new EmployeException("Erreur : Le salaire doit être entre 0 et 1 000 000.");
-        }
-    }
-
-    private void validerID(int id) throws EmployeException {
-        if (id <= 0) {
-            throw new EmployeException("Erreur : L'ID doit être un entier positif.");
-        }
-    }
-
-    // === MÉTHODES DE GESTION ===
     private void ajouterEmploye() throws EmployeException {
         System.out.println("\n=== AJOUT D'UN EMPLOYÉ ===");
 
-        int id = lireEntier("ID", 1, Integer.MAX_VALUE);
-        validerID(id);
+        if (((GestionEmployes) gestion).getNombreEmployes() >= TAILLE_MAX) {
+            throw new EmployeException("Le tableau est plein (maximum " + TAILLE_MAX + " employés)");
+        }
 
-        String nom = lireChaine("Nom");
-        validerNomOuPoste(nom, "Nom");
+        while (true) {
+            int id = lireEntier("ID", 1, Integer.MAX_VALUE, MAX_TENTATIVES);
+            if (((GestionEmployes) gestion).rechercherEmployeParId(id) != -1) {
+                System.out.println("Cet ID existe déjà. Veuillez entrer un autre ID ou appuyez sur 'espace' pour quitter.");
+                if (scanner.nextLine().trim().equals("")) return;
+                continue;
+            }
 
-        String poste = lireChaine("Poste");
-        validerNomOuPoste(poste, "Poste");
+            String nom = lireChaine("Nom", MAX_TENTATIVES);
+            if (((GestionEmployes) gestion).rechercherEmployeParNom(nom)) {
+                System.out.println("Ce nom existe déjà. Veuillez entrer un autre nom ou appuyez sur 'espace' pour quitter.");
+                if (scanner.nextLine().trim().equals("")) return;
+                continue;
+            }
 
-        double salaire = lireDouble("Salaire", 0, 1000000);
-        validerSalaire(salaire);
+            String poste = lireChaine("Poste", MAX_TENTATIVES);
+            double salaire = lireDouble("Salaire", 0, 1000000, MAX_TENTATIVES);
 
-        gestion.ajouterEmploye(new Employe(id, nom, poste, salaire));
-        System.out.println("Employé ajouté avec succès !");
+            Employe nouvelEmploye = new Employe(id, nom, poste, salaire);
+            gestion.ajouterEmploye(nouvelEmploye);
+            System.out.println("Employé ajouté avec succès !");
+            break;
+        }
     }
 
     private void modifierEmploye() throws EmployeException {
         System.out.println("\n=== MODIFICATION D'UN EMPLOYÉ ===");
 
-        int id = lireEntier("ID", 1, Integer.MAX_VALUE);
-        validerID(id);
-
-        String nom = lireChaine("Nouveau nom");
-        validerNomOuPoste(nom, "Nouveau nom");
-
-        String poste = lireChaine("Nouveau poste");
-        validerNomOuPoste(poste, "Nouveau poste");
-
-        double salaire = lireDouble("Nouveau salaire", 0, 1000000);
-        validerSalaire(salaire);
+        int id = lireEntier("ID", 1, Integer.MAX_VALUE, MAX_TENTATIVES);
+        String nom = lireChaine("Nouveau nom", MAX_TENTATIVES);
+        String poste = lireChaine("Nouveau poste", MAX_TENTATIVES);
+        double salaire = lireDouble("Nouveau salaire", 0, 1000000, MAX_TENTATIVES);
 
         gestion.modifierEmploye(id, nom, poste, salaire);
         System.out.println("Employé modifié avec succès !");
@@ -145,32 +157,26 @@ public class Menu {
     private void supprimerEmploye() throws EmployeException {
         System.out.println("\n=== SUPPRESSION D'UN EMPLOYÉ ===");
 
-        int id = lireEntier("ID", 1, Integer.MAX_VALUE);
-        validerID(id);
-
+        int id = lireEntier("ID de l'employé à supprimer", 1, Integer.MAX_VALUE, MAX_TENTATIVES);
         gestion.supprimerEmploye(id);
         System.out.println("Employé supprimé avec succès !");
     }
 
-    private void rechercherEmploye() {
+    private void rechercherEmploye() throws EmployeException {
         System.out.println("\n=== RECHERCHE D'EMPLOYÉ ===");
 
-        String critere = lireChaine("Entrez le nom ou le poste à rechercher");
-        try {
-            validerNomOuPoste(critere, "Critère de recherche");
-            gestion.rechercherEmploye(critere);
-        } catch (EmployeException e) {
-            System.out.println(e.getMessage());
-        }
+        String critere = lireChaine("Entrez le nom ou le poste à rechercher", MAX_TENTATIVES);
+        gestion.rechercherEmploye(critere);
     }
 
     private void trierEmployes() throws EmployeException {
-        System.out.println("\n=== TRI DES EMPLOYÉS ===");
+        System.out.println("\n=== TRI DES EMPLOYÉS PAR SALAIRE ===");
         System.out.println("1. Ordre croissant");
         System.out.println("2. Ordre décroissant");
 
-        int choix = lireEntier("Choix", 1, 2);
+        int choix = lireEntier("Votre choix", 1, 2, MAX_TENTATIVES);
         gestion.trierEmployesParSalaire(choix == 1);
+        System.out.println("\nListe triée des employés :");
         gestion.afficherEmployes();
     }
 }
